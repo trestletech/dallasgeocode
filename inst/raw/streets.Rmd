@@ -1,0 +1,19 @@
+---
+title: "Raw Streets Data"
+author: "Jeff Allen"
+date: "February 19, 2016"
+output: html_document
+---
+
+## Download
+
+Data was downloaded from this page: http://gis.dallascityhall.com/homepage/shapezip.htm . The actual file is http://gis.dallascityhall.com/homepage/Downloads/ShpZip/STREETS.ZIP
+
+Coding sheet available here: http://gis.dallascityhall.com/homepage/Downloads/ShpZip/Dalroads_Fields.pdf
+
+## Import
+
+```{r}
+map <- rgdal::readOGR("../STREETS.shp", layer="STREETS")
+save(map, file="R/sysdata.rda", compress=TRUE)
+```
