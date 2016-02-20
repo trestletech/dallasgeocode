@@ -14,6 +14,12 @@ Version: 1.1-3
 Hash: a122e1697ec9b16c696e4f35fb6789c8
 Requires: sp
 
+Package: rgeos
+Source: CRAN
+Version: 0.3-17
+Hash: 8dcb3dd25d044d70a6fb19be410e7587
+Requires: sp
+
 Package: sp
 Source: CRAN
 Version: 1.2-2
