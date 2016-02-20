@@ -4,7 +4,7 @@
 #' find_address("5921", "FOREST")
 find_address <- function(num, street){ #TODO: zip
   # Address
-  ch <- map[map$NAME == "CHURCHILL", ]
+  ch <- map[map$NAME == street, ]
   # fromAddresses
   addr <- cbind(ch$SEGMENT_ID, ch$L_F_ADD, ch$R_F_ADD, ch$L_T_ADD, ch$R_T_ADD)
   colnames(addr) <- c("ID", "LeftFrom", "RightFrom", "LeftTo", "RightTo")
@@ -39,14 +39,21 @@ find_address <- function(num, street){ #TODO: zip
 #' Find an Intersection
 #' @export
 #' @examples
-#'   find_intersection("PARK CENTRAL", "CHURCHILL")
+#' find_intersection("PARK CENTRAL", "CHURCHILL")
 find_intersection <- function(street1, street2){
   # Intersection
   s1 <- map[map$NAME == street1, ]
   s2 <- map[map$NAME == street2, ]
   inter <- rgeos::gIntersection(s1, s2)
   
-  plot(pc)
-  lines(ch, col=3)
-  points(inter, col=2)
+  #plot(s1)
+  #lines(s2, col=3)
+  #points(inter, col=2)
+  
+  # Unique row names
+  rownames(inter@coords) <- 1:nrow(inter@coords)
+  
+  latlon <- spTransform(inter, CRS("+proj=longlat +datum=NAD27"))
+  
+  latlon@coords
 }
