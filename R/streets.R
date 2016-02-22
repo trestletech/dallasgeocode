@@ -65,14 +65,22 @@ find_address <- function(streets){
       latlons <- rbind(latlons, lo)
     }
     
-    # TODO: score
-    if (nrow(latlons) > 1){
-      warning("Multiple results returned: ", street)
-    }
+    # lat/lon to feet
+    # TODO: use sp's classes/logic to convert
+    ft <- latlons * 10000/90 * 3280.4
+    mins <- apply(ft, 2, min)
+    maxs <- apply(ft, 2, max)
+    spread <- sqrt((maxs[1]-mins[1])^2 + (maxs[2] - mins[2])^2)
     
-    # FIXME: don't just take median of any number of distant points
-    res <- apply(latlons, 2, median)
-    c(x=res[1], y=res[2], qual=NA)
+    qual <- compute_quality(spread)
+    if (qual == 0){
+      # Refuse to even return a result
+      warning("Quality too low for spread of ", spread, " on ", street)
+      c(x=NA, y=NA, qual=qual)
+    } else {
+      res <- apply(latlons, 2, median)
+      c(x=res[1], y=res[2], qual=qual)
+    }
   })
 }
 
@@ -116,39 +124,39 @@ parse_address <- function(add){
       parts <- parts[-1]
     }
     
-    if (parts[1] %in% prefixes){
+    if (length(parts) >= 1 && parts[1] %in% prefixes){
       address$prefix <- parts[1]
       parts <- parts[-1]
     }
     
-    if (parts[length(parts)] %in% directions){
+    if (length(parts) >= 1 && parts[length(parts)] %in% directions){
       address$direction = parts[length(parts)]
       parts <- parts[-length(parts)]
     }
     
     # <SUFFIX> <TYPE>
-    if(parts[length(parts)] %in% types){
+    if(length(parts) >= 1 && parts[length(parts)] %in% types){
       address$type <- parts[length(parts)]
       parts <- parts[-length(parts)]
       
-      if(parts[length(parts)] %in% suffixes){
+      if(length(parts) >= 1 && parts[length(parts)] %in% suffixes){
         address$suffix <- parts[length(parts)]
         parts <- parts[-length(parts)]
       }
     }
     
     # <TYPE> <SUFFIX>
-    if(parts[length(parts)] %in% suffixes){
+    if(length(parts) >= 1 && parts[length(parts)] %in% suffixes){
       address$suffix <- parts[length(parts)]
       parts <- parts[-length(parts)]
       
-      if(parts[length(parts)] %in% types){
+      if(length(parts) >= 1 && parts[length(parts)] %in% types){
         address$type <- parts[length(parts)]
         parts <- parts[-length(parts)]
       }
     }
     
-    if (parts[length(parts)] == "SERV"){
+    if (length(parts) >= 1 && parts[length(parts)] == "SERV"){
       address$service <- TRUE
       parts <- parts[-length(parts)]
     }
@@ -201,7 +209,7 @@ filter_map <- function(street){
 #' @export
 #' @examples
 #' find_intersection("PARK CENTRAL", "CHURCHILL")
-find_intersection <- function(street1, street2){
+find_intersection <- function(street1, street2, debug=FALSE){
   
   street1 <- parse_address(street1)[[1]]
   street2 <- parse_address(street2)[[1]]
@@ -209,15 +217,22 @@ find_intersection <- function(street1, street2){
   s1 <- filter_map(street1)
   s2 <- filter_map(street2)
   
+  if (debug){
+    plot(s1)
+    lines(s2, col=3)
+  }
+  
   # Intersection
   inter <- rgeos::gIntersection(s1, s2)
   
   quality <- 100
-  
   if (is.null(inter) || nrow(inter@coords) == 0){
     # No results
     warning("No intersections found: ", street1, street2)
     return(NULL)
+  }
+  if (debug){
+    points(s2, inter)
   }
   
   if (nrow(inter@coords) > 1){
@@ -226,20 +241,11 @@ find_intersection <- function(street1, street2){
     # How big is this bounding box?
     spread <- sqrt(sum(abs(apply(inter@bbox, 1, diff))^2))
     
+    quality <- compute_quality(spread)
+    
     if (spread < 1500){
       centroid <- apply(inter@coords, 2, mean)
       inter <- SpatialPoints(t(as.matrix(centroid)), inter@proj4string)
-      
-      if (spread < 250){
-        # Close enough that we can just return the centroid
-        quality <- 98
-      } else if (spread < 750){
-        # We can return the centroid to get the general area,
-        # but it's not too accurate.
-        quality <- 90
-      } else {
-        quality <- 80
-      }
     } else {
       # Spread is too great. We're not sure which point to choose.
       warning("Multiple intersections found, but far away from each other", street1, street2)
@@ -261,3 +267,21 @@ find_intersection <- function(street1, street2){
   toReturn
 }
 
+
+#' @param spread The spread of the hypot. of the bounding box in feet.
+compute_quality <- function(spread){
+  if (spread < 20){
+    return(100)
+  } else if (spread < 250){
+    # Close enough that we can just return the centroid
+    return(98)
+  } else if (spread < 750){
+    # We can return the centroid to get the general area,
+    # but it's not too accurate.
+    return(90)
+  } else if (spread < 2000){
+    return(60)
+  } else{
+    return(0)
+  }
+}
