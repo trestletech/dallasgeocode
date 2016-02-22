@@ -4,12 +4,12 @@
 \alias{find_address}
 \title{Find an Address}
 \usage{
-find_address(num, street)
+find_address(street)
 }
 \description{
 Find an Address
 }
 \examples{
-find_address("5921", "FOREST")
+find_address("5921 FOREST")
 }
 

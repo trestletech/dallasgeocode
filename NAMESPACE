@@ -2,3 +2,5 @@
 
 export(find_address)
 export(find_intersection)
+export(find_location)
+export(render_locations)

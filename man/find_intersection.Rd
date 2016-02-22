@@ -10,6 +10,6 @@ find_intersection(street1, street2)
 Find an Intersection
 }
 \examples{
-  find_intersection("PARK CENTRAL", "CHURCHILL")
+find_intersection("PARK CENTRAL", "CHURCHILL")
 }
 
