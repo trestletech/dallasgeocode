@@ -2,7 +2,7 @@
 #' @export
 #' @examples 
 #' find_address("5921 FOREST LN")
-#' find_address(5921 FOREST") #Warns, multiple 
+#' find_address("5921 FOREST") #Warns, multiple 
 find_address <- function(streets){
   streets <- parse_address(streets)
   
@@ -59,6 +59,11 @@ find_address <- function(streets){
     }
     
     latlons <- NULL
+    if (nrow(segment) == 0){
+      warning("Invalid address -- no such number available: ", street)
+      return(c(x=NA, y=NA, qual=0))
+    }
+    
     for (i in 1:nrow(segment)){
       se <- segment[i,]
       lo <- interpolate_address(se, seg[i,], street$num)
@@ -84,6 +89,7 @@ find_address <- function(streets){
   })
 }
 
+#' Segment Map
 #' @param segment The map segments (filter_map)
 #' @param seg A table of segment IDs with the associated min and max address range.
 interpolate_address <- function(segment, seg, streetNum){
@@ -175,6 +181,7 @@ parse_and_find_intersection <- function(inter){
   streets
 }
 
+#' Render locations
 #' @export
 render_locations <- function(blocks, streets){
   st <- streets
@@ -182,6 +189,7 @@ render_locations <- function(blocks, streets){
   st
 }
 
+#' Find a location
 #' @export
 find_location <- function(loc){
   inters <- grepl(" / ", loc, fixed=TRUE)
@@ -229,7 +237,7 @@ find_intersection <- function(street1, street2, debug=FALSE){
   if (is.null(inter) || nrow(inter@coords) == 0){
     # No results
     warning("No intersections found: ", street1, street2)
-    return(NULL)
+    return(c(x=NA, y=NA, qual=0))
   }
   if (debug){
     points(s2, inter)
@@ -249,7 +257,7 @@ find_intersection <- function(street1, street2, debug=FALSE){
     } else {
       # Spread is too great. We're not sure which point to choose.
       warning("Multiple intersections found, but far away from each other", street1, street2)
-      return(NULL)
+      return(c(x=NA, y=NA, qual=0))
     }
   }
   
@@ -268,6 +276,7 @@ find_intersection <- function(street1, street2, debug=FALSE){
 }
 
 
+#' Compute quality
 #' @param spread The spread of the hypot. of the bounding box in feet.
 compute_quality <- function(spread){
   if (spread < 20){

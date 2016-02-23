@@ -4,7 +4,7 @@
 \alias{find_intersection}
 \title{Find an Intersection}
 \usage{
-find_intersection(street1, street2)
+find_intersection(street1, street2, debug = FALSE)
 }
 \description{
 Find an Intersection
