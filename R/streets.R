@@ -199,6 +199,7 @@ find_location <- function(loc){
 }
 
 filter_map <- function(street){
+  library(sp)
   s <- map[map$NAME == street$street, ] #TODO: Fuzzy
   if (!is.null(street$prefix)){
     s <- s[s$PREFIX == street$prefix, ]
