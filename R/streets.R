@@ -18,6 +18,9 @@ find_address <- function(streets){
     if (nrow(addr) > 1){
       suppressWarnings(mins <- apply(addr[,-1], 1, min, na.rm=TRUE))
       suppressWarnings(maxs <- apply(addr[,-1], 1, max, na.rm=TRUE))
+    } else if (nrow(addr) == 0){
+      warning("Could not find street: ", street)
+      return(c(x=NA, y=NA, qual=0))
     } else {
       # Only one segment
       mins <- min(addr[1, -1])
