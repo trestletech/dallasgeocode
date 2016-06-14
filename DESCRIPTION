@@ -7,7 +7,7 @@ Authors@R: c(
   person(family="City of Dallas", role=c("ctb", "cph"), comment="Streets shapefile"))
 Description: Geolocation of Dallas Addresses
 Depends:
-    R (>= 3.2.3)
+    R (>= 3.2.0)
 Imports:
     rgdal (>= 1.1),
     sp (>= 1.2),
